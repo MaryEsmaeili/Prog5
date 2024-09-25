@@ -1,70 +1,95 @@
-from mpi4py import MPI
+"""
+This module implements parallelized numerical integration using the trapezoid rule 
+with OpenMPI.
+"""
+
 import argparse
-import numpy as np
 import math
+from mpi4py import MPI
 
-# Function for exact integral
-def exact_integral(lower_bound, upper_bound):
-    return math.sin(upper_bound) - math.sin(lower_bound)
+def exact_integral(low_b, up_b):
+    """
+    Calculate the exact value of the integral of cos(x) over the interval.
 
-# Trapezoid rule implementation
-def trapezoid_method(func, lower_bound, upper_bound, n):
-    h = (upper_bound - lower_bound) / n
-    total = 0.5 * (func(lower_bound) + func(upper_bound))
-    for i in range(1, n):
-        total += func(lower_bound + i * h)
-    return total * h
+    Parameters:
+    low_b (float): Lower bound of the integration interval.
+    up_b (float): Upper bound of the integration interval.
 
-# Main MPI parallelized function
-def parallel_trapezoid(lower_bound, upper_bound, n):
-    # Initialize MPI
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()  # Process rank
-    size = comm.Get_size()  # Total number of processes
+    Returns:
+    float: Exact value of the integral.
+    """
+    return math.sin(up_b) - math.sin(low_b)
 
-    # Divide the interval among workers
-    h = (upper_bound - lower_bound) / n
-    local_n = n // size  # Divide steps equally among ranks
-    local_a = lower_bound + rank * local_n * h
-    local_b = local_a + local_n * h
+def trapezoid_method(func, l_bound, u_bound, n_steps):
+    """
+    Apply the trapezoid method to approximate the integral of a function.
 
-    # Each process computes the trapezoidal approximation on its subinterval
-    local_result = trapezoid_method(math.cos, local_a, local_b, local_n)
+    Parameters:
+    func (function): The function to integrate.
+    l_bound (float): Lower bound of the integration interval.
+    u_bound (float): Upper bound of the integration interval.
+    n_steps (int): Number of steps in the approximation.
 
-    # Master process gathers all results
-    if rank == 0:
+    Returns:
+    float: The approximated value of the integral.
+    """
+    step_size = (u_bound - l_bound) / n_steps
+    total = 0.5 * (func(l_bound) + func(u_bound))
+    for i in range(1, n_steps):
+        total += func(l_bound + i * step_size)
+    return total * step_size
+
+def parallel_trapezoid(min_bound, max_bound, num_steps):
+    """
+    Perform parallelized trapezoidal integration using MPI.
+
+    Parameters:
+    l_bound (float): Lower bound of the integration interval.
+    u_bound (float): Upper bound of the integration interval.
+    n_steps (int): Number of steps in the approximation.
+    
+    Returns:
+    float: The parallelized approximation of the integral, or None for worker ranks.
+    """
+    api_comm = MPI.COMM_WORLD
+    my_rank = api_comm.Get_rank()
+    size = api_comm.Get_size()
+    step_size = (max_bound - min_bound) / num_steps
+    local_steps = num_steps // size
+    local_a = min_bound + my_rank * local_steps * step_size
+    local_b = local_a + local_steps * step_size
+    local_result = trapezoid_method(math.cos, local_a, local_b, local_steps)
+
+    if my_rank == 0:
         total_result = local_result
         for i in range(1, size):
-            local_result = comm.recv(source=i)
-            total_result += local_result
+            total_result += api_comm.recv(source=i)
         return total_result
-    else:
-        # Send results back to the master process
-        comm.send(local_result, dest=0)
+    api_comm.send(local_result, dest=0)
+    return None
 
-# Parse command-line arguments
 def parse_arguments():
+    """
+    Parse command-line arguments for numerical integration.
+    """
     parser = argparse.ArgumentParser(description='Parallel trapezoidal integration using MPI')
     parser.add_argument('-a', type=float, required=True, help='Lower bound of integration')
     parser.add_argument('-b', type=float, required=True, help='Upper bound of integration')
     parser.add_argument('-n', type=int, required=True, help='Number of steps for the trapezoid method')
     return parser.parse_args()
 
-# Main function
 if __name__ == "__main__":
     args = parse_arguments()
-    lower_bound = args.a
-    upper_bound = args.b
-    n = args.n
+    min_value = args.a
+    max_value = args.b
+    my_steps = args.n
 
-    # MPI parallelized trapezoidal integration
-    result = parallel_trapezoid(lower_bound, upper_bound, n)
+    result = parallel_trapezoid(min_value, max_value, my_steps)
 
-    # Rank 0 will handle output
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
     if rank == 0:
-        exact_result = exact_integral(lower_bound, upper_bound)
+        exact_result = exact_integral(min_value, max_value)
         error = abs(exact_result - result)
-        print(f"n={n}, error={error}")
+        print(f"n={my_steps}, error={error}")
