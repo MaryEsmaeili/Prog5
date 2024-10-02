@@ -65,4 +65,8 @@ if __name__ == "__main__":
     exact_result = exact_integral(min_value, max_value)
     # Error
     error = abs(exact_result - numerical_result)
+<<<<<<< HEAD
     print(f"{n_steps},{error}")
+=======
+    print(f"{n_steps},{error}")
+>>>>>>> 9be21c215b64343db54135ff50be6b3ebd951b4f
