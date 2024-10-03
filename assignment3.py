@@ -2,7 +2,6 @@
 This script extracts metadata from PubMed XML files and inserts it into a MySQL database.
 """
 
-import os
 import mysql.connector
 import xmltodict
 
@@ -11,8 +10,11 @@ def get_db_connection():
     """
     Establishes and returns a connection to the MySQL database.
     """
-    return mysql.connector.connect(option_files='/homes/mesmaeili/.my.cnf')
-
+    return mysql.connector.connect(
+        option_files='/homes/mesmaeili/.my.cnf',
+        charset='utf8mb4',
+        collation='utf8mb4_general_ci'
+    )
 
 # Create tables in the database
 def create_tables(cursor):
@@ -118,7 +120,7 @@ def main():
     conn = get_db_connection()
     cursor = conn.cursor()
     create_tables(cursor)
-    xml_file = 'pubmed0001.xml'  
+    xml_file = '/data/datasets/NCBI/PubMed/pubmed0001.xml'  
     insert_data_from_xml(xml_file, cursor)
     conn.commit()
     cursor.close()
