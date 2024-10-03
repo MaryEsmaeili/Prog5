@@ -31,35 +31,29 @@ def parse_pubmed_xml(file_path):
     """
     with open(file_path, 'r', encoding='utf-8') as xml_file:
         pubmed_dict = xmltodict.parse(xml_file.read())
-
     articles = pubmed_dict['PubmedArticleSet']['PubmedArticle']
     extracted_data = []
     for article in articles:
         article_metadata = {}
         article_metadata['pubmed_id'] = article['MedlineCitation']['PMID']
         article_metadata['title'] = article['MedlineCitation']['Article']['ArticleTitle']
-        
         authors_list = article['MedlineCitation']['Article'].get('AuthorList', {}).get('Author', [])
         if isinstance(authors_list, dict):
             authors_list = [authors_list]
         authors = ', '.join([f"{author.get('LastName', '')} {author.get('ForeName', '')}" for author in authors_list])
         article_metadata['authors'] = authors
-        
         journal = article['MedlineCitation']['Article']['Journal']
         article_metadata['journal'] = journal['Title']
-
         pub_date = journal['JournalIssue']['PubDate']
         year = None
         if 'Year' in pub_date:
             year = pub_date['Year']
         elif 'MedlineDate' in pub_date:
             year = pub_date['MedlineDate'][:4]
-        
         try:
             article_metadata['year'] = int(year)
         except (ValueError, TypeError):
             article_metadata['year'] = None
-        
         keywords_list = article['MedlineCitation'].get('KeywordList', {}).get('Keyword', [])
         if isinstance(keywords_list, list):
             keywords = [kw.get('#text', kw) if isinstance(kw, dict) else kw for kw in keywords_list]
@@ -68,12 +62,9 @@ def parse_pubmed_xml(file_path):
             article_metadata['keywords'] = keywords_list
         else:
             article_metadata['keywords'] = None
-        
         pages = article['MedlineCitation']['Article'].get('Pagination', {}).get('MedlinePgn', None)
-        article_metadata['page_count'] = pages if pages else None
-        
+        article_metadata['page_count'] = pages if pages else None    
         article_metadata['publisher'] = article['MedlineCitation']['Article'].get('Publisher', {}).get('PublisherName', None)
-        
         extracted_data.append(article_metadata)
 
     return extracted_data
@@ -104,7 +95,6 @@ def insert_article_data(article_data):
         INSERT INTO Articles (pubmed_id, title, authors, journal, year, keywords, page_count, publisher)
         VALUES (:pubmed_id, :title, :authors, :journal, :year, :keywords, :page_count, :publisher)
     """)
-    
     for article in article_data:
         conn.execute(query, article)
         conn.commit()
