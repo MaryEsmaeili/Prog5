@@ -122,7 +122,7 @@ def main():
     conn = get_db_connection()
     cursor = conn.cursor()
     create_tables(cursor)
-    xml_file = 'pubmed0001.xml'  # Replace with your actual XML file
+    xml_file = 'pubmed0001.xml'  
     insert_data_from_xml(xml_file, cursor)
     conn.commit()
     cursor.close()
