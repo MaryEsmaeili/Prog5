@@ -11,12 +11,8 @@ def get_db_connection():
     """
     Establishes and returns a connection to the MySQL database.
     """
-    return mysql.connector.connect(
-        host="mariadb.bin.bioinf.nl",
-        user=os.environ.get("MYSQL_USER"),
-        password=os.environ.get("MYSQL_PASSWORD"),
-        database=os.environ.get("MYSQL_DATABASE")
-    )
+    return mysql.connector.connect(option_files='/homes/mesmaeili/.my.cnf')
+
 
 # Create tables in the database
 def create_tables(cursor):
