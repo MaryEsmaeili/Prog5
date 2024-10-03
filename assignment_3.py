@@ -16,11 +16,9 @@ def load_mysql_credentials():
     return credentials
 
 creds = load_mysql_credentials()
-
 # Construct the connection string
 connection_string = (f"mysql+mysqldb://{creds['user']}:{creds['password']}@"
                      f"mariadb.bin.bioinf.nl/{creds['database']}")
-
 # Connect to the database
 engine = create_engine(connection_string)
 conn = engine.connect()
