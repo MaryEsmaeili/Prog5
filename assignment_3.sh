@@ -7,4 +7,4 @@
 #SBATCH --mem=2G
 
 # Run the Python script
-python3 assignment3.py
+python3 assignment3.py 
