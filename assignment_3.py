@@ -35,11 +35,11 @@ def parse_pubmed_xml(file_path):
         
         # Safely handle the 'AuthorList'
         authors_list = article['MedlineCitation']['Article'].get('AuthorList', {}).get('Author', [])
-
+        
         if isinstance(authors_list, dict):  # if there is only one author
             authors_list = [authors_list]
 
-        # Joining all Authors' name and family with ,
+        # Joining all Authors' names
         authors = ', '.join([f"{author.get('LastName', '')} {author.get('ForeName', '')}" for author in authors_list])
         article_metadata['authors'] = authors
         
@@ -49,28 +49,27 @@ def parse_pubmed_xml(file_path):
         
         # Safely extract publication year
         pub_date = journal['JournalIssue']['PubDate']
-        year = pub_date.get('Year')
-        if year is not None:
-            year = int(year)
-        else:
-            year = None
-        # if 'Year' in pub_date:
-        #     article_metadata['year'] = pub_date['Year']
-        # elif 'MedlineDate' in pub_date:
-        #     # In case 'MedlineDate' is present instead of 'Year'
-        #     article_metadata['year'] = pub_date['MedlineDate']
-        # else:
-        #     article_metadata['year'] = None  # No valid year or date found
-        article_metadata['year'] = year
+        year = None
+        
+        if 'Year' in pub_date:
+            year = pub_date['Year']
+        elif 'MedlineDate' in pub_date:
+            # Extract the year portion from MedlineDate like "2007 Jan-Feb"
+            year = pub_date['MedlineDate'][:4]  # Just grab the first four characters (the year)
+
+        # Convert to integer or None
+        try:
+            article_metadata['year'] = int(year)
+        except (ValueError, TypeError):
+            article_metadata['year'] = None  # Handle non-numeric year cases
+
         # Extract keywords safely
         keywords_list = article['MedlineCitation'].get('KeywordList', {}).get('Keyword', [])
-
+        
         if isinstance(keywords_list, list):
-            # Extract the actual keyword from each dictionary in the list
             keywords = [kw.get('#text', kw) if isinstance(kw, dict) else kw for kw in keywords_list]
             article_metadata['keywords'] = ', '.join(keywords)
         elif isinstance(keywords_list, str):
-            # If it's just a single string, set it directly
             article_metadata['keywords'] = keywords_list
         else:
             article_metadata['keywords'] = None  # No valid keywords found
@@ -84,7 +83,6 @@ def parse_pubmed_xml(file_path):
         
         extracted_data.append(article_metadata)
 
-    
     return extracted_data
 
 
@@ -92,17 +90,17 @@ def parse_pubmed_xml(file_path):
 def create_tables():
     conn.execute(text("""
         CREATE TABLE IF NOT EXISTS Articles (
-            id INTEGER AUTO_INCREMENT PRIMARY KEY,
-            pubmed_id TEXT NOT NULL,
-            title TEXT NOT NULL,
-            authors TEXT,
-            journal TEXT,
-            year INTEGER,
-            keywords TEXT,
-            page_count TEXT,
-            publisher TEXT
-        );
-        
+        id INTEGER AUTO_INCREMENT PRIMARY KEY,
+        pubmed_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        authors TEXT,
+        journal TEXT,
+        year INTEGER,
+        keywords TEXT,
+        page_count TEXT,
+        publisher TEXT
+    );
+       
     """))
 
 def insert_article_data(article_data):
