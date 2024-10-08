@@ -1,11 +1,18 @@
 #!/bin/bash
 #SBATCH --job-name=assignment4
-#SBATCH --output=output.txt
-#SBATCH --error=errors.txt
-#SBATCH --time=02:00:00
-#SBATCH --mem=32G
+#SBATCH --output=output_assignment4.txt
+#SBATCH --error=error_assignment4.txt
+#SBATCH --time=02:00:00      
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --partition=assemblix  # Specify the assemblix partition
 
-# Load Spark and run the python script
+# Log job start time and hostname
+echo "Job started on $(hostname) at $(date)"
+
+# Run the Python script
 python3 assignment4.py
+
+# Log completion time
+echo "Job completed at $(date)"
+
