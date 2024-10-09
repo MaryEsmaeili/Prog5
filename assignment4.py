@@ -7,16 +7,17 @@ from pyspark.sql.types import StructType, StructField, StringType, ArrayType
 
 # Initialize Spark Session
 def create_spark_session():
-    spark = SparkSession.builder.appName("assignment4").master("spark://spark.bin.bioinf.nl:7077").getOrCreate()
-    return spark
-def create_spark_session():
     spark = SparkSession.builder \
         .appName("assignment4") \
         .master("spark://spark.bin.bioinf.nl:7077") \
         .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0") \
+        .config("spark.submit.deployMode", "cluster") \
+        .config("spark.executor.extraClassPath", "/path/to/your/venv/lib/python3.11/site-packages/pyspark/jars/*") \
+        .config("spark.driver.extraClassPath", "/path/to/your/venv/lib/python3.11/site-packages/pyspark/jars/*") \
         .getOrCreate()
     return spark
-# Function to load and process exactly 5 XML files
+
+# Function to load and process the XML files (fixed to handle correct paths)
 def load_data(spark, schema, file_path_list):
     return spark.read.format("xml") \
         .option("rootTag", "PubmedArticleSet") \
@@ -24,11 +25,11 @@ def load_data(spark, schema, file_path_list):
         .schema(schema) \
         .load(file_path_list)
 
-# Function to answer question 1
+# Function to answer question 1: Average number of co-authors per article
 def q1(df):
     return df.selectExpr("size(authors) as num_authors").groupBy().avg("num_authors").first()[0]
 
-# Function to answer question 2
+# Function to answer question 2: Co-authorship in citations
 def q2(df):
     df_authors = df.withColumn("author", explode("authors"))
     df_citations = df.withColumn("citation", explode("citations"))
@@ -42,7 +43,37 @@ def q2(df):
     coauthor_citation_ratio = coauthor_citations_count / total_citations if total_citations > 0 else 0
     return coauthor_citation_ratio
 
-# Function to plot citation distribution over time
+# Function to answer question 3: Distribution of citations over time
+def q3(df):
+    df_with_year = df.withColumn("year", year(df["pub_date"]))
+    df_citations = df.withColumn("citation", explode(df["citations"]))
+    citation_distribution = df_citations.groupBy("year").count()
+    return citation_distribution
+
+# Function to answer question 4: Correlation between shared keywords and citations
+def q4(df):
+    df_keywords = df.withColumn("keyword", explode("keywords"))
+    shared_keywords = df_keywords.alias("a").join(
+        df_keywords.alias("b"),
+        F.col("a.keyword") == F.col("b.keyword") & (F.col("a.title") != F.col("b.title")),
+        how="inner"
+    ).select(F.col("a.title").alias("paper1"), F.col("b.title").alias("paper2"))
+
+    df_citation = df.withColumn("citation", explode(df["citations"]))
+    citation_with_keywords = shared_keywords.join(
+        df_citation.alias("c"),
+        F.col("paper1") == F.col("c.title") & F.col("paper2").isin(F.col("c.citation")),
+        how="left"
+    ).groupBy("paper1", "paper2").count()
+    return citation_with_keywords
+
+# Function to answer question 5: Most-cited papers and keyword correlation
+def q5(df):
+    df_citation = df.withColumn("citation", explode(df["citations"]))
+    most_cited = df_citation.groupBy("title").count().orderBy("count", ascending=False).limit(100)
+    return most_cited
+
+# Plot citation distribution over time
 def plot_citation_distribution(df):
     citation_counts = df.groupBy("year").count().orderBy("year").toPandas()
     plt.figure(figsize=(10, 6))
@@ -55,8 +86,9 @@ def plot_citation_distribution(df):
 
 # Main function to run all analyses and save results
 def main():
-
     spark = create_spark_session()
+    
+    # Define the schema
     schema = StructType([
         StructField("title", StringType(), True),
         StructField("authors", ArrayType(StringType()), True),
@@ -65,28 +97,37 @@ def main():
         StructField("pub_date", StringType(), True)
     ])
     
+    # List of 5 specific XML files (adjust these paths according to your environment)
     file_path_list = [
-        "/data/datasets/NCBI/PubMed/pubmed21n0002.xml",
-        "/data/datasets/NCBI/PubMed/pubmed21n0012.xml",
-        "/data/datasets/NCBI/PubMed/pubmed21n0032.xml",
-        "/data/datasets/NCBI/PubMed/pubmed21n0042.xml",
-        "/data/datasets/NCBI/PubMed/pubmed21n0052.xml"
+        "/data/datasets/NCBI/PubMed/file1.xml"
+        # "/data/datasets/NCBI/PubMed/file2.xml",
+        # "/data/datasets/NCBI/PubMed/file3.xml",
+        # "/data/datasets/NCBI/PubMed/file4.xml",
+        # "/data/datasets/NCBI/PubMed/file5.xml"
     ]
     
+    # Load data
     df = load_data(spark, schema, file_path_list)
-    
+
+    # Perform analysis for each question
     avg_coauthors = q1(df)
     coauthor_citation_ratio = q2(df)
-    
-    # Plot citation distribution over time
+    citation_distribution = q3(df)
+    citation_with_keywords = q4(df)
+    most_cited = q5(df)
+
+    # Plot citation distribution
     plot_citation_distribution(df)
-    
-    # Collect results
+
+    # Collect all results
     results = {
         "Average number of co-authors": avg_coauthors,
-        "Co-author citation ratio": coauthor_citation_ratio
+        "Co-author citation ratio": coauthor_citation_ratio,
+        "Citation Distribution": citation_distribution.collect(),
+        "Citation with Shared Keywords": citation_with_keywords.collect(),
+        "Most-cited Papers": most_cited.collect()
     }
-    
+
     # Save the results to CSV
     pd.DataFrame.from_dict(results, orient='index').to_csv("assignment4_answers.csv")
 
