@@ -4,19 +4,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
+import random, sys, time
+from pyspark.sql import SparkSession
 
 # Initialize Spark Session
 def create_spark_session():
     spark = SparkSession.builder \
-        .appName("assignment4") \
-        .master("spark://spark.bin.bioinf.nl:7077") \
+        .appName("assignment4_yourname") \
+        .master("local[16]") \
         .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0") \
-        .config("spark.submit.deployMode", "cluster") \
-        .config("spark.executor.extraClassPath", "/path/to/your/venv/lib/python3.11/site-packages/pyspark/jars/*") \
-        .config("spark.driver.extraClassPath", "/path/to/your/venv/lib/python3.11/site-packages/pyspark/jars/*") \
         .getOrCreate()
     return spark
-
+spark, sc =create_spark_session()
 # Function to load and process the XML files (fixed to handle correct paths)
 def load_data(spark, schema, file_path_list):
     return spark.read.format("xml") \
@@ -87,7 +86,7 @@ def plot_citation_distribution(df):
 # Main function to run all analyses and save results
 def main():
     spark = create_spark_session()
-    
+
     # Define the schema
     schema = StructType([
         StructField("title", StringType(), True),
@@ -97,35 +96,39 @@ def main():
         StructField("pub_date", StringType(), True)
     ])
     
-    # List of 5 specific XML files (adjust these paths according to your environment)
-    file_path_list = [
-        "/data/datasets/NCBI/PubMed/file1.xml"
+    # Load the data (make sure your path is correct)
+    df = load_data(spark, schema, "/data/datasets/NCBI/PubMed/file1.xml")
+    
+    
+    # # List of 5 specific XML files (adjust these paths according to your environment)
+    # file_path_list = [
+    #     "/data/datasets/NCBI/PubMed/file1.xml"
         # "/data/datasets/NCBI/PubMed/file2.xml",
         # "/data/datasets/NCBI/PubMed/file3.xml",
         # "/data/datasets/NCBI/PubMed/file4.xml",
         # "/data/datasets/NCBI/PubMed/file5.xml"
-    ]
-    
-    # Load data
-    df = load_data(spark, schema, file_path_list)
+    # ]
+
+    # # Load data
+    # df = load_data(spark, schema, "/data/datasets/NCBI/PubMed/file1.xml")
 
     # Perform analysis for each question
     avg_coauthors = q1(df)
-    coauthor_citation_ratio = q2(df)
-    citation_distribution = q3(df)
-    citation_with_keywords = q4(df)
-    most_cited = q5(df)
+    # coauthor_citation_ratio = q2(df)
+    # citation_distribution = q3(df)
+    # citation_with_keywords = q4(df)
+    # most_cited = q5(df)
 
-    # Plot citation distribution
-    plot_citation_distribution(df)
+    # # Plot citation distribution
+    # plot_citation_distribution(df)
 
     # Collect all results
     results = {
         "Average number of co-authors": avg_coauthors,
-        "Co-author citation ratio": coauthor_citation_ratio,
-        "Citation Distribution": citation_distribution.collect(),
-        "Citation with Shared Keywords": citation_with_keywords.collect(),
-        "Most-cited Papers": most_cited.collect()
+        # "Co-author citation ratio": coauthor_citation_ratio,
+        # "Citation Distribution": citation_distribution.collect(),
+        # "Citation with Shared Keywords": citation_with_keywords.collect(),
+        # "Most-cited Papers": most_cited.collect()
     }
 
     # Save the results to CSV
