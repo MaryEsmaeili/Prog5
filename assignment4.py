@@ -3,8 +3,7 @@ sys.path.append('/opt/spark/python/lib/py4j-0.10.9.7-src.zip')
 sys.path.append('/opt/spark/python')
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import year, explode
-import pandas as pd
-import matplotlib.pyplot as plt
+from pyspark.sql.functions import col, substring, desc, countDistinct
 from pyspark.sql import functions as F
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
 
@@ -15,7 +14,17 @@ def create_spark_session():
     .master("spark://spark.bin.bioinf.nl:7077")\
     .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0").getOrCreate()
     return spark
-
+# def create_spark_session():
+#     spark = SparkSession.builder \
+#         .appName("assignment4_Maryam") \
+#         .master("spark://spark.bin.bioinf.nl:7077") \
+#         .config("spark.executor.memory", "4g") \
+#         .config("spark.executor.cores", "2") \
+#         .config("spark.driver.memory", "4g") \
+#         .config("spark.ui.port", "4051") \
+#         .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0") \
+#         .getOrCreate()
+#     return spark
 # Function to load and process the XML files (fixed to handle correct paths)
 def load_data(spark, schema, file_path_list):
     return spark.read.format("xml") \
@@ -57,8 +66,6 @@ def q2(df):
 
 
 # Function to answer question 3: Distribution of citations over time
-from pyspark.sql.functions import col, substring, desc
-
 def q3(df):
     # Step 1: Extract the year from the pub_date column
     df_with_year = df.withColumn("year", substring("pub_date", 1, 4))
@@ -82,10 +89,6 @@ def q3(df):
 
 
 # Function to answer question 4: Correlation between shared keywords and citations
-from pyspark.sql.functions import countDistinct
-
-from pyspark.sql.functions import countDistinct
-
 def q4(df):
     # Step 1: Explode the keywords and citations columns to create individual rows
     df_keywords = df.withColumn("keyword", explode("keywords"))
@@ -132,8 +135,6 @@ def q4(df):
     return correlation_ratio
 
 # Function to answer question 5: Most-cited papers and keyword correlation
-from pyspark.sql.functions import countDistinct, desc
-
 def q5(df, cutoff=100):
     # Step 1: Explode the keywords and citations columns to create individual rows
     df_keywords = df.withColumn("keyword", explode("keywords"))
@@ -255,7 +256,7 @@ def main():
     coauthor_citation_ratio = q2(df_extracted)
     general_citation_distribution, most_cited_distribution = q3(df_extracted)
     citation_with_keywords = q4(df_extracted)
-    # correlation_most_cited = q5(df_extracted)
+    correlation_most_cited = q5(df_extracted)
 
     # Collect results for citation distributions
     general_citation_data = general_citation_distribution.collect()
@@ -268,7 +269,7 @@ def main():
     print("Average number of co-authors:", avg_coauthors)
     print("Co-author citation ratio:", coauthor_citation_ratio)
     print("Correlation ratio for shared keywords:", citation_with_keywords)
-    # print("Correlation for most-cited papers:", correlation_most_cited)
+    print("Correlation for most-cited papers:", correlation_most_cited)
 
     # Collect all results
     results = {
@@ -277,7 +278,7 @@ def main():
         "General Citation Distribution": general_citation_data,
         "Most Cited Distribution": most_cited_data,
         "Correlation with Shared Keywords": citation_with_keywords,
-        # "Correlation for Most-Cited Papers": correlation_most_cited
+        "Correlation for Most-Cited Papers": correlation_most_cited
     }
 
     # Save the results to CSV

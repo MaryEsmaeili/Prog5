@@ -7,12 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --partition=assemblix  # Specify the assemblix partition
 
-# Log job start time and hostname
-echo "Job started on $(hostname) at $(date)"
-
 # Run the Python script
 python3 assignment4.py
 
-# Log completion time
-echo "Job completed at $(date)"
 
