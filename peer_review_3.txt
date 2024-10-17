@@ -1,0 +1,31 @@
+# SQL Discussion form
+
+## Administration
+* Your name: Maryam Esmaeili
+
+* Your discussion partner's name: Mary Wu, Armita Sabri
+
+* Commit hash of the code you discussed: 62b82c6db0e570fd5e00e4b6c1afcdd9ee781344
+
+* Your code's pylint score: 8.88
+
+## Discussion
+### Pre-set discussion points:
+- Start by discussing your DB design choices (tables, data types)
+- Then go on to your implementation;
+  1. How did you split up the work (functions/classes)?
+Simple yet functional and concise 
+  2. How long (about) does it take, where is time spent?
+About 10 mins
+  3. Did you use parallel processing, if so how? If not, why not?
+No, because our data was not as big as it needs to parallel processing.
+  4. What was your difference in =pylint= scores? Can you see why?
+Mary has the most pylint score and it was because her line code was shorter
+  5. How did the normalization level (table number) influence the code?
+Normalizing code helps make data more accessible by organizing it in a structured manner. I normalized the data based on the assignment requirements, excluding irrelevant information. However, to avoid losing any important data, we would need to create additional tables as part of the normalization process.
+  6. Did your choice in database table design make it more or less hard to do the assignment?
+My approach towards the design of the database tables created an easier assignment in some areas but make some challenges too. creation of separate tables for each type of information was useful in enhancing the overall organization of data and efficiency in retrieving specific information. This certain structure reduced the cases of having similar information in different locations and therefore helped in the management of information.
+### Extra points that came up during discussion of your code:
+I realized that by using more functions and assigning each one a smaller, specific task, I could improve the quality and readability of my code. Additionally, I could leverage Spark for parallel processing to enhance the efficiency of my assignment.
+### Extra comments about the assignment:
+In my opinion, it would have been better to work with simpler data for this assignment, as the original data was quite complicated.

@@ -12,7 +12,8 @@ def create_spark_session():
     spark = SparkSession.builder\
     .appName("assignment4_Maryam")\
     .master("spark://spark.bin.bioinf.nl:7077")\
-    .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0").getOrCreate()
+    .config("spark.jars.packages", "com.databricks:spark-xml_2.12:0.15.0")\
+    .getOrCreate()
     return spark
 # def create_spark_session():
 #     spark = SparkSession.builder \
