@@ -1,4 +1,5 @@
 import random, sys, time
+import pandas as pd
 sys.path.append('/opt/spark/python/lib/py4j-0.10.9.7-src.zip')
 sys.path.append('/opt/spark/python')
 from pyspark.sql import SparkSession
