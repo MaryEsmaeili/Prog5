@@ -18,7 +18,7 @@ output_file="all_times.txt"
 echo "cores,time" > $output_file            # Add a header to the output file
 
 # Set number of integration steps and interval bounds
-n=1000000
+n=1000000000
 a=0
 b=1
 
