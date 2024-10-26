@@ -58,6 +58,8 @@ classifier_columns = [
     "FATHMM_score", "PROVEAN_score"
 ]
 predictions_count = {col: df.filter(df[col].isNotNull()).count() for col in classifier_columns}
+
+# Top five classifiers
 top_five_classifiers = sorted(predictions_count, key=predictions_count.get, reverse=True)[:5]
 df = df.select("#chr", "pos(1-based)", "Ensembl_proteinid", *top_five_classifiers)
 
@@ -70,9 +72,20 @@ most_predictions_position = df.groupBy("genome_position_id").count().orderBy("co
 # Identify the protein with the most predictions
 most_predictions_protein = df.groupBy("Ensembl_proteinid").count().orderBy("count", ascending=False).first()
 
-# Output findings
-print(f"Position with most predictions: {most_predictions_position}")
-print(f"Protein with most predictions: {most_predictions_protein}")
+# Output answers to questions based on the processed data
+print("1. Number of predictions each classifier makes:")
+print(predictions_count)
+
+print("\n2. Top five classifiers by prediction count:")
+print(top_five_classifiers)
+
+print("\n3. Unique genome position identifier created: 'genome_position_id' column")
+
+print("\n4. Position with the most predictions:")
+print(f"Position: {most_predictions_position['genome_position_id']}, Count: {most_predictions_position['count']}")
+
+print("\n5. Protein (Ensembl_proteinid) with the most predictions:")
+print(f"Protein: {most_predictions_protein['Ensembl_proteinid']}, Count: {most_predictions_protein['count']}")
 
 # JDBC URL for MySQL connection
 jdbc_url = f"jdbc:mysql://mariadb.bin.bioinf.nl:3306/{creds['database']}?useSSL=false&allowPublicKeyRetrieval=true"
