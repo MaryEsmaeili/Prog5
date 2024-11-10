@@ -8,7 +8,7 @@
 #SBATCH --partition=assemblix
 
 # Activate environment
-source ~/Documents/my_new_venv/bin/activate
+source ~/Documents/my_new_nenv/bin/activate
 
 # Run Python script
-/homes/mesmaeili/Documents/myenv/bin/python3 /homes/mesmaeili/Documents/Prog5/assignment6.py
+/homes/mesmaeili/Documents/myenv/bin/python3 /homes/mesmaeili/Documents/Prog5/test.py

@@ -286,6 +286,8 @@ def main():
     # Save the results to CSV
     pd.DataFrame.from_dict(results, orient='index').to_csv("assignment4_answers.csv")
 
+    # Stop Spark session
+    spark.stop()
 if __name__ == "__main__":
     main()
 
