@@ -22,8 +22,9 @@ with open("original_times.txt") as f:
 plt.plot(worker_counts, async_times, label='Asynchronous Version', marker='o')
 plt.plot(worker_counts, original_times, label='Original Version (assignment2.py)', marker='s')
 plt.xlabel("Number of Workers")
-plt.ylabel("Execution Time (seconds)")
+plt.ylabel("Execution Time (sec)")
 plt.title("Execution Time Comparison")
+
 plt.legend()
 plt.grid(True)
 

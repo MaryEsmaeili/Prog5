@@ -13,7 +13,7 @@ for n in "${workers[@]}"; do
     echo "Running with $n workers..."
 
     # Run the asynchronous version and capture time
-    async_time=$(/usr/bin/time -f "%e" mpirun -np $n python /homes/mesmaeili/Documents/Prog5/EXAM/MPI_async.py 2>&1 | tail -n 1)
+    async_time=$(/usr/bin/time -f "%e" mpirun -np $n python /openmpi.py 2>&1 | tail -n 1)
     echo "$n $async_time" >> $async_times
 
     # Run the original version (assignment2.py) and capture time

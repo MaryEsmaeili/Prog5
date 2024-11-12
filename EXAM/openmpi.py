@@ -7,11 +7,11 @@ upper_bound = 1.0
 num_steps = 1000000
 step_size = (upper_bound - lower_bound) / num_steps
 
-# Define the function to integrate (example: f(x) = x^2)
+# Define the function to integrate
 def function_to_integrate(x):
     return x**2
 
-# Compute the local integral for each process
+# Compute the local integral
 def compute_local_integral(start, end, step_size):
     integral = 0.0
     x = start
@@ -25,15 +25,14 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-# Define the bounds each rank should handle
-work_per_rank = (upper_bound - lower_bound) / (size - 1)  # Exclude rank 0
+# Define the bounds each rank should handle exclude 0
+work_per_rank = (upper_bound - lower_bound) / (size - 1)
 
 # Broadcast step size to all processes
 step_size = comm.bcast(step_size, root=0)
 
 # Asynchronous gathering of results at rank 0
 if rank == 0:
-    # Rank 0 initializes asynchronous receiving
     requests = []
     results = np.zeros(size - 1)
     for i in range(1, size):
@@ -42,7 +41,7 @@ if rank == 0:
     
     # Wait for each result and sum up
     for i in range(size - 1):
-        results[i] = requests[i].wait()  # Wait for each irecv request to complete
+        results[i] = requests[i].wait()
     
     # Calculate the final integral result
     final_result = np.sum(results)
