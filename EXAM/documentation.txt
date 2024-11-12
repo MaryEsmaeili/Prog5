@@ -1,0 +1,34 @@
+- Open MPI Plot:
+With asynchronous operations, each worker can send results as soon as it's done, so there's less waiting around.
+In the original version, all workers need to stop and share results at the same time, which slows things down.
+So asynchronous operations is more efficient and shows better scalability with an increasing number of workers.
+
+- SQL:
+In this code, the approach for designing tables and writing the function to drop tables (Drop Table) was chosen to create a well-organizedand efficient data structure.
+The **students**, **parents**, **academic_profile**, and **lifestyle** tables were designed based on the principle of **normalization**,
+to avoid repeating data and make relationships between data clearer and access to information easier.
+
+For example:
+- The **students** table holds basic student information, with each student having a unique ID.
+    Primary Key: student_id – each student has a unique identifier.
+- The **parents** table separates family data to store parent information.
+    Primary Key: parent_id
+    Foreign Key: student_id – links each parent to a specific student.
+- The **academic_profile** table is dedicated to academic details and performance.
+    Primary Key: profile_id
+    Foreign Key: student_id – links academic records to each student.
+- The **lifestyle** table stores lifestyle data, like alcohol consumption and other habits.
+    Primary Key: lifestyle_id
+    Foreign Key: student_id – associates lifestyle information with each student.
+
+My approach organizes data in a way that avoid duplication and makes it easier to access specific information.
+The Drop Table function allows for easily clearing and resetting the database, which is especially useful for testing and development.
+It helps keep the database clean and ready for reloading data without duplicates.
+
+- Spark:
+while merging these columns is useful for convenience and readability, 
+it’s crucial to ensure that it doesn’t obscure essential data variations or mislead analyses that assume hg19_chr_pos is a unique identifier.
+Replacing Invalid Values:
+In genomic datasets, some columns contain placeholder values like ".", ";", or combinations like ".;" to represent missing or undefined data.
+For each specified column, we used a regular expression to identify and replace these placeholders with None (null values in Spark).
+This ensures these entries do not interfere with calculations or statistical analyses.
