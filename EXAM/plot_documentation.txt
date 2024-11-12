@@ -1,5 +1,0 @@
-- Open MPI Plot:
-With asynchronous operations, each worker can send results as soon as it's done, so there's less waiting around.
-In the original version, all workers need to stop and share results at the same time, which slows things down.
-So asynchronous operations is more efficient and shows better scalability with an increasing number of workers.
-
